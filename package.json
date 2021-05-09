@@ -1,0 +1,29 @@
+{
+  "name": "transcoder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "classify": "node classify.js",
+    "transcode": "node transcode.js",
+    "exif": "node exif.js",
+    "reverse-geocode": "node reverse-geocode.js"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^3.6.1",
+    "dms-conversion": "^3.1.1",
+    "dms2dec": "^1.1.0",
+    "exif": "^0.6.0",
+    "exiftool": "0.0.3",
+    "fluent-ffmpeg": "^2.1.2",
+    "local-reverse-geocoder": "^0.10.0",
+    "mime-types": "^2.1.30",
+    "parse-dms": "0.0.5",
+    "sharp": "^0.28.1"
+  }
+}
