@@ -2,6 +2,7 @@ import exif from "exif";
 import parseDMS from "parse-dms";
 import ffmpeg from './promise-ffmpeg.js'
 import fs from "fs";
+import geocode from "./reverse-geocode.js";
 
 const {ExifImage} = exif;
 
@@ -13,8 +14,18 @@ export async function probeVideo(videoPath) {
     let height = video.height;
     let duration = format.duration;
     let createDate = new Date(format.tags.creation_time);
-    let [lat, lon] = format.tags.location.split('-').map(n => +(n.replace(/\//g, '')));
-    let gps = {lat, lon, altitude: null};
+    let gps = null;
+    if (format.tags.location !== undefined) {
+        let [[lat], [lon]] = format.tags.location.matchAll(/[+-]\d+\.\d+/g)
+        lat = +lat;
+        lon = +lon;
+        gps = {lat, lon, altitude: null};
+        let geocodeData = await geocode({
+            latitude: gps.lat,
+            longitude: gps.lon
+        });
+        gps = {...gps, ...geocodeData};
+    }
     let size = format.size;
     let exifData = {
         ...format.tags,
@@ -28,10 +39,11 @@ export async function probeVideo(videoPath) {
     delete exifData.video.tags;
     delete exifData.filename;
     delete exifData.tags;
+
     return {type: 'video', width, height, duration, size, createDate, gps, exif: exifData};
 }
 
-// probeVideo('./photos/vid.mp4');
+// probeVideo('./photos/home.mp4');
 // getExif('./photos/img.jpg')
 
 export async function getExif(image) {
@@ -40,12 +52,20 @@ export async function getExif(image) {
             if (error)
                 return reject(error);
 
-            let lad = data.gps.GPSLatitude;
-            let latString = `${lad[0]}°${lad.slice(1).join(`'`)}"${data.gps.GPSLatitudeRef}`;
-            let lod = data.gps.GPSLongitude;
-            let lonString = `${lod[0]}°${lod.slice(1).join(`'`)}"${data.gps.GPSLongitudeRef}`;
-            let gps = parseDMS(`${latString} ${lonString}`);
-            gps.altitude = data.gps.GPSAltitude;
+            let gps = null;
+            if (data.gps.GPSLatitude && data.gps.GPSLongitude) {
+                let lad = data.gps.GPSLatitude;
+                let latString = `${lad[0]}°${lad.slice(1).join(`'`)}"${data.gps.GPSLatitudeRef}`;
+                let lod = data.gps.GPSLongitude;
+                let lonString = `${lod[0]}°${lod.slice(1).join(`'`)}"${data.gps.GPSLongitudeRef}`;
+                gps = parseDMS(`${latString} ${lonString}`);
+                gps.altitude = data.gps.GPSAltitude;
+                let geocodeData = await geocode({
+                    latitude: gps.lat,
+                    longitude: gps.lon
+                });
+                gps = {...gps, ...geocodeData};
+            }
 
             let {size} = await fs.promises.stat(image);
 
@@ -69,8 +89,8 @@ export async function getExif(image) {
                 exifData.FlashpixVersion = exifData.FlashpixVersion.toString()
             if (exifData.ComponentsConfiguration)
                 exifData.ComponentsConfiguration = Array.from(exifData.ComponentsConfiguration);
-            let res = {type: 'image', width, height, size, createDate, gps, exif: exifData};
-            resolve(res);
+
+            resolve({type: 'image', width, height, size, createDate, gps, exif: exifData});
         });
     });
 }

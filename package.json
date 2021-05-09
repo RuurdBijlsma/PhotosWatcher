@@ -16,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@tensorflow/tfjs-node": "^3.6.1",
+    "country-code-lookup": "0.0.19",
     "dms-conversion": "^3.1.1",
     "dms2dec": "^1.1.0",
     "exif": "^0.6.0",
