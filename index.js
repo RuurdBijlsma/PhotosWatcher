@@ -1,6 +1,7 @@
 import classify from "./classify.js";
 import geocode from "./reverse-geocode.js";
 import {transcode, resize} from "./transcode.js";
+import {getExif, probeVideo} from "./exif";
 import fs from 'fs'
 import path from "path";
 import mime from "mime-types";
@@ -17,16 +18,20 @@ async function checkFileExists(file) {
 }
 
 async function processMedia(filePath) {
-    //Find out metadata
-    //Generate thumbnails/transcoders
-    //Put data in database
-    // If some failure happens, post to telegram
     let fileExt = path.extname(filePath);
     let mimeType = mime.lookup(fileExt);
     let type = mimeType.split('/')[0];
-    if(type==='image'){
-
+    if (type === 'image') {
+        let metadata = await getExif(filePath);
+        // Resize 1080p version and some thumbnails to some path
+        // Put in database
+    } else if (type === 'video') {
+        let metadata = await probeVideo(filePath);
+        // Transcode to some path
+        // Generate some thumbnails
+        // Put in database
     }
+    // If some failure happens, retry after timeout, then post to telegram
     return true;
 }
 
