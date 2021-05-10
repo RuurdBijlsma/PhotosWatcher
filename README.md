@@ -22,50 +22,67 @@ Video:
 * Thumbnail 500p & 1080p in .webp format
 
 ## Some example data
+
 ![image](https://github.com/ruurdbijlsma/photoswatcher/blob/master/.gh/photo.webp?raw=true)
 
-The following labels are generated for the image above
+The following labels are generated for the image above, such labels could be used to create a Google Photos like search
+function. You could search for "mountain", or "valley" and find this image.
+
 ```json
 [
-    {
-        "logits": 7.928366184234619,
-        "word": {
-            "names": [
-                "alp"
-            ],
-            "synset": "n09193705",
-            "glossary": "any high mountain"
-        }
-    },
-    {
-        "logits": 6.944406509399414,
-        "word": {
-            "names": [
-                "valley",
-                "vale"
-            ],
-            "synset": "n09468604",
-            "glossary": "a long depression in the surface of the land that usually contains a river"
-        }
-    },
-    {
-        "logits": 6.885942459106445,
-        "word": {
-            "names": [
-                "barn"
-            ],
-            "synset": "n02793495",
-            "glossary": "an outlying farm building for storing grain or animal feed and housing farm animals"
-        }
+  {
+    "logits": 7.928366184234619,
+    "word": {
+      "names": [
+        "alp"
+      ],
+      "synset": "n09193705",
+      "glossary": "any high mountain"
     }
+  },
+  {
+    "logits": 6.944406509399414,
+    "word": {
+      "names": [
+        "valley",
+        "vale"
+      ],
+      "synset": "n09468604",
+      "glossary": "a long depression in the surface of the land that usually contains a river"
+    }
+  },
+  {
+    "logits": 6.885942459106445,
+    "word": {
+      "names": [
+        "barn"
+      ],
+      "synset": "n02793495",
+      "glossary": "an outlying farm building for storing grain or animal feed and housing farm animals"
+    }
+  }
 ]
 ```
 
-[comment]: <> (The location is reverse geocoded producing the following structure:)
+The location is reverse geocoded producing the following structure, such labels could also help in searching for the
+image. You could search for "Italy", or "Tuscany" and find this photo.
 
-[comment]: <> (```json)
+```json
+{
+  "lat": 42.65882777777777,
+  "lon": 11.102102777777777,
+  "altitude": 92.9,
+  "place": "Grosseto",
+  "country": "Italy",
+  "admin": [
+    "Grosseto",
+    "Provincia di Grosseto",
+    "Tuscany"
+  ]
+}
+```
 
-[comment]: <> (```)
+There is much more exif data not shown here in this example.
 
 ## What's this used for
 
@@ -77,10 +94,12 @@ I'll be using this code in my private server to create a personal Google Photos 
 2. Configure `config.js`
 3. `npm start`
 
-This will install the dependencies and make the program start watching the given folder for changes, newly added photos will be processed as described above.
+This will install the dependencies and make the program start watching the given folder for changes, newly added photos
+will be processed as described above.
 
 ## Todo
 
 * Database integration (add entry with metadata when adding media item)
 * Better handling of burst / portrait photos
 * (Repeatedly) check for any files in media folder that haven't been processed yet
+* Probably much more...
