@@ -5,6 +5,7 @@ classifier/inceptionresnet/*
 !classifier/inceptionresnet/model_location
 geonames/*
 !geonames/geocode_files_will_dump_here
+thumbnails
 
 .DS_Store
 node_modules

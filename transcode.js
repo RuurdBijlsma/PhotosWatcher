@@ -15,8 +15,8 @@ export async function resize({input, output, width = null, height = null}) {
 
 // resize({input: './photos/berb.jpg', output: 'test.webp', height: 1440})
 
-export async function videoScreenshot({input, output, width = null, height = null}) {
-    return await ffmpeg.screenshot({file: input, output: output, width, height});
+export async function videoScreenshot({input, output, width = null, height = null, signal = null}) {
+    return await ffmpeg.screenshot({file: input, output: output, width, height, signal});
 }
 
 // transcode({input: './photos/vid.mp4', output: 'test3.webm'});
@@ -24,13 +24,13 @@ export async function videoScreenshot({input, output, width = null, height = nul
 // Webm stream won't work with express content-range stream setup
 // Transcode mp4 to dash/hls
 // ffmpeg -i vid.mp4 -map 0:v:0 -map 0:a:0 -map 0:v:0 -map 0:a:0 -b:v:0 1000k  -c:v:0 libx264 -filter:v:0 "scale=-2:480"  -b:v:1 6000k -c:v:1 libx264 -filter:v:1 "scale=-2:1080" -use_timeline 1 -use_template 1 -window_size 6 -adaptation_sets "id=0,streams=v  id=1,streams=a" -hls_playlist true -f dash m3u8/output.mpd
-export async function transcode({input, output, height = null, width = null, bitrate = 5555}) {
+export async function transcode({input, output, height = null, width = null, bitrate = 5555, signal = null}) {
     return new Promise((resolve, reject) => {
         if (width === null && height === null)
             return reject("Width and height can't both be null");
 
         let duration = '';
-        ffmpeg(input, {
+        let command = ffmpeg(input, {
             niceness: -10,
         })
             .videoBitrate(bitrate)
@@ -58,5 +58,7 @@ export async function transcode({input, output, height = null, width = null, bit
                 resolve();
             })
             .saveToFile(output);
+
+        signal?.addEventListener?.('abort', () => command.kill());
     })
 }

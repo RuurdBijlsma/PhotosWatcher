@@ -89,6 +89,10 @@ export async function getExif(image) {
                 exifData.FlashpixVersion = exifData.FlashpixVersion.toString()
             if (exifData.ComponentsConfiguration)
                 exifData.ComponentsConfiguration = Array.from(exifData.ComponentsConfiguration);
+            if (exifData.UserComment)
+                exifData.UserComment = exifData.UserComment.toString()
+            if (exifData.MakerNote)
+                exifData.MakerNote = exifData.MakerNote.toString()
 
             resolve({type: 'image', width, height, size, createDate, gps, exif: exifData});
         });

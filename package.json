@@ -8,6 +8,7 @@
     "classify": "node classify.js",
     "transcode": "node transcode.js",
     "exif": "node exif.js",
+    "wordnet": "node wordnet.js",
     "reverse-geocode": "node reverse-geocode.js"
   },
   "type": "module",
@@ -17,14 +18,13 @@
   "dependencies": {
     "@tensorflow/tfjs-node": "^3.6.1",
     "country-code-lookup": "0.0.19",
-    "dms-conversion": "^3.1.1",
-    "dms2dec": "^1.1.0",
     "exif": "^0.6.0",
-    "exiftool": "0.0.3",
     "fluent-ffmpeg": "^2.1.2",
     "local-reverse-geocoder": "^0.10.0",
     "mime-types": "^2.1.30",
+    "node-wordnet": "^0.1.12",
     "parse-dms": "0.0.5",
-    "sharp": "^0.28.1"
+    "sharp": "^0.28.1",
+    "wndb-with-exceptions": "^3.0.2"
   }
 }
