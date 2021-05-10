@@ -82,7 +82,7 @@ image. You could search for "Italy", or "Tuscany" and find this photo.
 }
 ```
 
-There is much more exif data not shown here in this example.
+There is also a lot of exif data not shown in this example.
 
 ## What's this used for
 
