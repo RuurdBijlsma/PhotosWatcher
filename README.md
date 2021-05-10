@@ -1,4 +1,4 @@
-# Media Transcoding, Metadata, and Classification
+# Media transcoding, metadata retrieval, reverse geocoding, and classification
 
 Watches a given folder and generates the following for each new photo/video:
 
