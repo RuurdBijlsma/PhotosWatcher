@@ -58,6 +58,6 @@ async function getLabelWord(idx) {
     }
 }
 
-classify('./photos/20150805_190450.jpg').then(c => {
-    console.log(c);
-})
+// classify('./photos/IMG_20200731_203422.jpg').then(c => {
+//     console.log(c);
+// })

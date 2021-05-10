@@ -21,7 +21,7 @@ const vidPoster = await useDir(path.join(config.thumbnails, 'vidPoster'));
 const smallVidPoster = await useDir(path.join(config.thumbnails, 'smallVidPoster'));
 
 //test:
-// await processMedia('./photos/kat.jpg');
+await processMedia('./photos/IMG_20200731_203422.jpg');
 // await processMedia('./photos/home.mp4');
 
 //When new media arrives

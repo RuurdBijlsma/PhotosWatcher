@@ -21,6 +21,52 @@ Video:
 * 1080p .webm version of the video optimized for streaming
 * Thumbnail 500p & 1080p in .webp format
 
+## Some example data
+![image](https://github.com/ruurdbijlsma/photoswatcher/blob/master/.gh/photo.webp?raw=true)
+
+The following labels are generated for the image above
+```json
+[
+    {
+        "logits": 7.928366184234619,
+        "word": {
+            "names": [
+                "alp"
+            ],
+            "synset": "n09193705",
+            "glossary": "any high mountain"
+        }
+    },
+    {
+        "logits": 6.944406509399414,
+        "word": {
+            "names": [
+                "valley",
+                "vale"
+            ],
+            "synset": "n09468604",
+            "glossary": "a long depression in the surface of the land that usually contains a river"
+        }
+    },
+    {
+        "logits": 6.885942459106445,
+        "word": {
+            "names": [
+                "barn"
+            ],
+            "synset": "n02793495",
+            "glossary": "an outlying farm building for storing grain or animal feed and housing farm animals"
+        }
+    }
+]
+```
+
+[comment]: <> (The location is reverse geocoded producing the following structure:)
+
+[comment]: <> (```json)
+
+[comment]: <> (```)
+
 ## What's this used for
 
 I'll be using this code in my private server to create a personal Google Photos clone

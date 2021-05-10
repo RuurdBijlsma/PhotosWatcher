@@ -13,7 +13,7 @@ export async function resize({input, output, width = null, height = null}) {
         .toFile(output);
 }
 
-// resize({input: './photos/berb.jpg', output: 'test.webp', height: 1440})
+// resize({input: './photos/IMG_20200731_203422.jpg', output: 'test.webp', height: 500})
 
 export async function videoScreenshot({input, output, width = null, height = null, signal = null}) {
     return await ffmpeg.screenshot({file: input, output: output, width, height, signal});
