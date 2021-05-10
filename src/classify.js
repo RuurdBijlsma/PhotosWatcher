@@ -3,6 +3,7 @@ import fs from 'fs'
 import {EOL} from "os";
 import iMaxN from './iMaxN.js';
 import WordNet from 'node-wordnet'
+import path from "path";
 
 const wordnet = new WordNet();
 let model, labels, syns;
@@ -12,7 +13,10 @@ async function initClassifier() {
     syns = await fs.promises.readFile('./classifier/syns.txt').then(f => f.toString().split(EOL));
 
     // https://tfhub.dev/google/imagenet/inception_resnet_v2/classification/5
-    model = await tf.loadGraphModel('file:///Users/Ruurd/WebstormProjects/transcoder/classifier/inceptionresnet/model.json');
+    let modelPath = path.resolve('./classifier/inceptionresnet/model.json');
+    if (process.platform === 'win32')
+        modelPath = modelPath.substr(3);
+    model = await tf.loadGraphModel(`file:///${modelPath}`);
 }
 
 const ready = initClassifier();
@@ -37,7 +41,7 @@ export default async function classify(imagePath, nLabels = 3) {
             logits: predicted[i],
             word: await getLabelWord(i),
         })
-    return resultArr.sort((a,b)=>b.logits - a.logits)
+    return resultArr.sort((a, b) => b.logits - a.logits)
 }
 
 async function getLabelWord(idx) {
@@ -47,13 +51,13 @@ async function getLabelWord(idx) {
         return {
             names: [...new Set([...word.synonyms, word.lemma])],
             synset: ss,
-            glossary: word.gloss,
+            glossary: word.gloss.trim(),
         };
     } catch (e) {
         return {names: [labels[idx]], synset: null, glossary: ''};
     }
 }
 
-// classify('./photos/20150805_190450.jpg').then(c => {
-//     console.log(c);
-// })
+classify('./photos/20150805_190450.jpg').then(c => {
+    console.log(c);
+})

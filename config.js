@@ -1,4 +1,4 @@
 export default {
-    mediaPath: './photos',
+    media: './photos',
     thumbnails: './thumbnails',
 }

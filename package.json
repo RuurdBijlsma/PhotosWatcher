@@ -2,14 +2,14 @@
   "name": "transcoder",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node index.js",
-    "classify": "node classify.js",
-    "transcode": "node transcode.js",
-    "exif": "node exif.js",
-    "wordnet": "node wordnet.js",
-    "reverse-geocode": "node reverse-geocode.js"
+    "start": "node src/index.js",
+    "classify": "node src/classify.js",
+    "transcode": "node src/transcode.js",
+    "exif": "node src/exif.js",
+    "wordnet": "node src/wordnet.js",
+    "reverse-geocode": "node src/reverse-geocode.js"
   },
   "type": "module",
   "keywords": [],

@@ -1,17 +1,18 @@
 import classify from "./classify.js";
-import {transcode, resize, videoScreenshot} from "./transcode.js";
+import {resize, transcode, videoScreenshot} from "./transcode.js";
 import {getExif, probeVideo} from "./exif.js";
 import fs from 'fs'
 import path from "path";
 import mime from "mime-types";
-import config from "./config.js";
-
+import config from "../config.js";
 
 // Todo
 // Database stuff
 // Turn into class or something
-// Handle images in folder (find out if they are burst or ?)
+// Handle images in folder (find out if they are burst or portrait?)
 // Add process all files that aren't processed (use db for this)
+// (Repeatedly) check for any files in media folder that haven't been processed yet
+
 
 const bigPic = await useDir(path.join(config.thumbnails, 'bigPic'));
 const smallPic = await useDir(path.join(config.thumbnails, 'smallPic'));
@@ -24,10 +25,10 @@ const smallVidPoster = await useDir(path.join(config.thumbnails, 'smallVidPoster
 // await processMedia('./photos/home.mp4');
 
 //When new media arrives
-console.log("Watching", config.mediaPath);
-fs.watch(config.mediaPath, async (eventType, filename) => {
+console.log("Watching", config.media);
+fs.watch(config.media, async (eventType, filename) => {
     if (eventType === 'rename') {
-        let changedFile = path.join(config.mediaPath, filename);
+        let changedFile = path.join(config.media, filename);
         if (await checkFileExists(changedFile)) {
             await waitSleep(600);
             await addMedia(changedFile);
