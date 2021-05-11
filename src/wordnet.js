@@ -12,5 +12,14 @@ const wordnet = new WordNet();
 // let syn = await wordnet.getAsync(+ss.substr(1), ss.substring(0, 1));
 // console.log(syn);
 
-let syn = await wordnet.getAsync(1529491, 'v');
+let syn = await wordnet.getAsync(2123045, 'n');
 console.log(syn);
+let syns = [];
+while (true) {
+    syns.push(syn);
+    let parent = syn.ptrs.find(p => p.pointerSymbol === '@');
+    if (!parent)
+        break;
+    syn = await wordnet.getAsync(parent.synsetOffset, parent.pos);
+}
+console.log(syns)

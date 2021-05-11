@@ -2,6 +2,7 @@ import geocoder from "local-reverse-geocoder";
 import lookup from "country-code-lookup";
 
 async function init() {
+    // return; // To speed up testing
     return new Promise(resolve => {
         geocoder.init({
             load: {
@@ -18,6 +19,8 @@ async function init() {
 let ready = init();
 
 export default async function geocode(point = {latitude: 48.45349, longitude: 9.09582}) {
+    // return {place: 'Temp', country: 'Templand', admin: ['Temp-west', 'TempoTown']}; // to speed up testing
+
     await ready;
 
     return new Promise((resolve, reject) => {

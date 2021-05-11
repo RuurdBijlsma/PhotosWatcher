@@ -36,26 +36,53 @@ export default async function classify(imagePath, nLabels = 3) {
     let maxIndices = iMaxN(predicted, nLabels);
 
     let resultArr = [];
-    for (let i of maxIndices)
+    for (let i of maxIndices) {
+        let {labels, glossaries} = await getLabelWord(i);
         resultArr.push({
             logits: predicted[i],
-            word: await getLabelWord(i),
-        })
-    return resultArr.sort((a, b) => b.logits - a.logits)
+            labels, glossaries
+        });
+    }
+    let maxLogits = Math.max(...resultArr.map(r => r.logits));
+    return resultArr
+        .map(r => ({
+            confidence: r.logits / maxLogits,
+            labels: r.labels,
+            glossaries: r.glossaries
+        }))
+        .sort((a, b) => b.confidence - a.confidence)
 }
 
 async function getLabelWord(idx) {
     try {
         let ss = syns[idx];
         let word = await wordnet.getAsync(+ss.substr(1), ss.substring(0, 1));
-        return {
-            names: [...new Set([...word.synonyms, word.lemma])],
-            synset: ss,
-            glossary: word.gloss.trim(),
-        };
+        let parents = [];
+        let parent = word;
+        while (true) {
+            let pointer = parent.ptrs.find(p => p.pointerSymbol === '@');
+            if (!pointer)
+                break;
+            parent = await wordnet.getAsync(pointer.synsetOffset, pointer.pos);
+            if (parent.lexFilenum !== word.lexFilenum)
+                break;
+            parents.push(parent);
+        }
+        let hierarchy = [word, ...parents].map(parseWord);
+        let labels = hierarchy.flatMap(w => w.names);
+        let glossaries = hierarchy.map(w => w.glossary);
+        return {labels, glossaries};
     } catch (e) {
-        return {names: [labels[idx]], synset: null, glossary: ''};
+        return {labels: [labels[idx]], glossaries: []};
     }
+}
+
+function parseWord(word) {
+    return {
+        names: [...new Set([...word.synonyms, word.lemma])].map(w => w.replace(/_/g, ' ')),
+        synset: word.pos + word.synsetOffset,
+        glossary: word.gloss.trim(),
+    };
 }
 
 // classify('./photos/IMG_20200731_203422.jpg').then(c => {

@@ -3,6 +3,10 @@ import parseDMS from "parse-dms";
 import ffmpeg from './promise-ffmpeg.js'
 import fs from "fs";
 import geocode from "./reverse-geocode.js";
+import {StringDecoder} from "string_decoder";
+import path from "path";
+
+const decoder = new StringDecoder('latin1');
 
 const {ExifImage} = exif;
 
@@ -30,21 +34,32 @@ export async function probeVideo(videoPath) {
     let exifData = {
         ...format.tags,
         video,
-        audio,
+        audio: audio ?? null,
         ...format,
     };
-    delete exifData.audio.disposition;
-    delete exifData.audio.tags;
+    if (audio) {
+        delete exifData.audio.disposition;
+        delete exifData.audio.tags;
+    }
     delete exifData.video.disposition;
     delete exifData.video.tags;
     delete exifData.filename;
     delete exifData.tags;
 
-    return {type: 'video', width, height, duration, size, createDate, gps, exif: exifData};
+    let slowmotion = false;
+    if (exifData.video.avg_frame_rate &&
+        exifData.video.avg_frame_rate.includes('/') &&
+        exifData.hasOwnProperty('com.android.capture.fps')) {
+        let captureFps = +exifData['com.android.capture.fps'];
+        let [fps1, fps2] = exifData.video.avg_frame_rate.split('/').map(n => +n);
+        slowmotion = captureFps > (fps1 / fps2);
+    }
+    let subType = slowmotion ? 'slomo' : 'none';
+    return {type: 'video', subType, width, height, duration, size, createDate, gps, exif: exifData};
 }
 
 // probeVideo('./photos/home.mp4');
-// getExif('./photos/img.jpg')
+// getExif('./photos/20150804_192803.jpg')
 
 export async function getExif(image) {
     return new Promise((resolve, reject) => {
@@ -84,17 +99,23 @@ export async function getExif(image) {
                 ...data.exif,
             }
             if (exifData.ExifVersion)
-                exifData.ExifVersion = exifData.ExifVersion.toString()
+                exifData.ExifVersion = decoder.write(exifData.ExifVersion);
             if (exifData.FlashpixVersion)
-                exifData.FlashpixVersion = exifData.FlashpixVersion.toString()
+                exifData.FlashpixVersion = decoder.write(exifData.FlashpixVersion);
             if (exifData.ComponentsConfiguration)
                 exifData.ComponentsConfiguration = Array.from(exifData.ComponentsConfiguration);
             if (exifData.UserComment)
-                exifData.UserComment = exifData.UserComment.toString()
+                exifData.UserComment = decoder.write(exifData.UserComment);
             if (exifData.MakerNote)
-                exifData.MakerNote = exifData.MakerNote.toString()
+                exifData.MakerNote = decoder.write(exifData.MakerNote);
 
-            resolve({type: 'image', width, height, size, createDate, gps, exif: exifData});
+            let fileName = path.basename(image);
+            let subType = 'none';
+            if (fileName.includes("PORTRAIT" && fileName.includes("COVER")))
+                subType = 'Portrait';
+            else if (fileName.startsWith('PANO'))
+                subType = 'VR';
+            resolve({type: 'image', subType, width, height, size, createDate, gps, exif: exifData});
         });
     });
 }

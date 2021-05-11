@@ -8,8 +8,6 @@ import config from "../config.js";
 
 // Todo
 // Database stuff
-// Turn into class or something
-// Handle images in folder (find out if they are burst or portrait?)
 // Add process all files that aren't processed (use db for this)
 // (Repeatedly) check for any files in media folder that haven't been processed yet
 
@@ -19,37 +17,65 @@ const smallPic = await useDir(path.join(config.thumbnails, 'smallPic'));
 const streamVid = await useDir(path.join(config.thumbnails, 'streamVid'));
 const vidPoster = await useDir(path.join(config.thumbnails, 'vidPoster'));
 const smallVidPoster = await useDir(path.join(config.thumbnails, 'smallVidPoster'));
+await initialize();
 
 //test:
-await processMedia('./photos/IMG_20200731_203422.jpg');
-// await processMedia('./photos/home.mp4');
+await processMedia('./photos/IMG_20210510_230607.jpg');
+// await processMedia('./photos/VID_20210510_224246.mp4');
 
-//When new media arrives
-console.log("Watching", config.media);
-fs.watch(config.media, async (eventType, filename) => {
-    if (eventType === 'rename') {
-        let changedFile = path.join(config.media, filename);
-        if (await checkFileExists(changedFile)) {
-            await waitSleep(600);
-            await addMedia(changedFile);
-        } else {
-            let success = await removeMedia(changedFile);
-            console.log("Remove file processed", filename, "success?", success);
+async function initialize() {
+    await syncFiles();
+
+    console.log("Watching", config.media);
+    fs.watch(config.media, async (eventType, filename) => {
+        if (eventType === 'rename') {
+            let changedFile = path.join(config.media, filename);
+            if (await checkFileExists(changedFile)) {
+                await waitSleep(600);
+                let files = await getFilesRecursive(changedFile);
+                for (let file of files)
+                    await processMedia(file);
+            } else {
+                let success = await removeMedia(changedFile);
+                console.log("Remove file processed", filename, "success?", success);
+            }
         }
-    }
-});
+    });
+}
 
-async function addMedia(filePath) {
-    let fileStat = await fs.promises.stat(filePath);
-    console.log("Adding", filePath);
-    if (fileStat.isDirectory()) {
-        let files = await fs.promises.readdir(filePath);
-        for (let file of files)
-            await addMedia(path.join(filePath, file));
-    } else {
-        let success = await processMedia(filePath);
-        console.log("New file processed", filePath, "success?", success);
+async function syncFiles() {
+    // Sync files
+    let files = await getFilesRecursive(config.media);
+    await Promise.all(files.map(processIfNeeded));
+    console.log(files);
+}
+
+async function processIfNeeded(filePath) {
+    let processed = await isProcessed(filePath);
+    if (!processed)
+        await processMedia(filePath);
+}
+
+async function isProcessed(filePath) {
+    let type = getFileType(filePath);
+    let files = [];
+
+    if (type === 'image') {
+        let {big, small} = getPaths(filePath);
+        files.push(big, small);
+    } else if (type === 'video') {
+        let {webm, poster, smallPoster} = getPaths(filePath);
+        files.push(webm, poster, smallPoster);
     }
+    for (let file of files) {
+        if (!await checkFileExists(file))
+            return false;
+        let stat = await fs.promises.stat(file);
+        if (!stat.isFile())
+            return false;
+    }
+
+    return true;
 }
 
 async function processMedia(filePath) {
@@ -59,16 +85,20 @@ async function processMedia(filePath) {
     if (type === 'image') {
         let labels = await classify(filePath);
         let metadata = await getExif(filePath);
+        let height = Math.min(metadata.height, 1440);
+        let smallHeight = Math.min(metadata.height, 500);
         let {big, small} = getPaths(filePath);
-        await resize({input: filePath, output: big, height: 1440});
-        await resize({input: filePath, output: small, height: 500});
+        await resize({input: filePath, output: big, height});
+        await resize({input: filePath, output: small, height: smallHeight});
         console.log("put in db", filePath, metadata, labels, `+${bigPic} en ${smallPic}`);
     } else if (type === 'video') {
         let metadata = await probeVideo(filePath);
+        let height = Math.min(metadata.height, 1080);
+        let smallHeight = Math.min(metadata.height, 500);
         let {webm, poster, smallPoster} = getPaths(filePath);
-        await transcode({input: filePath, output: webm, height: 1080});
-        await videoScreenshot({input: webm, output: poster, height: 1080});
-        await resize({input: poster, output: smallPoster, height: 500});
+        await transcode({input: filePath, output: webm, height});
+        await videoScreenshot({input: webm, output: poster, height});
+        await resize({input: poster, output: smallPoster, height: smallHeight});
         console.log("put in db", filePath, metadata, `+${webm}, ${vidPoster} en ${smallVidPoster}`);
     }
     // If some failure happens, retry after timeout, then post to telegram
@@ -95,6 +125,18 @@ async function removeMedia(filePath) {
         console.warn("Remove error", e);
         return false;
     }
+}
+
+async function getFilesRecursive(filePath) {
+    let files = [];
+    let fileStat = await fs.promises.stat(filePath);
+    if (fileStat.isDirectory()) {
+        for (let file of await fs.promises.readdir(filePath))
+            files.push(...await getFilesRecursive(path.join(filePath, file)));
+    } else {
+        files.push(filePath);
+    }
+    return files;
 }
 
 function getFileType(filePath) {
